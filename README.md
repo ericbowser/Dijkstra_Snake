@@ -17,6 +17,35 @@ npm run dev
 
 Opens at `http://localhost:5173`.
 
+## Testing
+
+An end-to-end Cypress test watches the A* AI play a full round
+unattended: it starts the game, demonstrates camera tilt/rotate, hands
+control to the AI, and lets it play until it actually dies (no fixed
+timer — it waits on the "Game over" status, capped at 5 minutes as a
+safety net for the test runner). It then asserts the AI scored during
+the run.
+
+```bash
+npm run test:e2e
+```
+
+Boots the dev server and runs headlessly. Cypress records video of
+every run to `cypress/videos/` — that clip is the AI playing itself
+end-to-end, camera moves and all, ready to share.
+
+To watch the browser while it runs:
+
+```bash
+npm run test:e2e:headed
+```
+
+To run interactively step-by-step instead:
+
+```bash
+npm run cypress:open
+```
+
 ## Controls
 
 - **W A S D** — move the snake (manual mode only)

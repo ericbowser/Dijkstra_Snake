@@ -1,18 +1,11 @@
 import * as THREE from 'three';
 
 const MIN_PHI = 0.05;   // near-straight-down
-const MAX_PHI = 1.15;   // angled perspective (~66deg from vertical)
+const MAX_PHI = 1.52;   // near-parallel to the board (~87deg from vertical)
 const TILT_STEP = 0.12;
 const ROTATE_STEP = 0.12;
 const LERP_SPEED = 0.08;
 
-/**
- * Orbits a perspective camera around a fixed target on a sphere.
- * Starts near-vertical (bird's-eye) and tilts toward an angled
- * perspective view as the polar angle (phi) increases. Left/right
- * rotates freely around the target via the azimuthal angle (theta) —
- * no clamping needed since a full orbit is always valid.
- */
 export class CameraRig {
   constructor({ aspect, target, radius }) {
     this.target = target.clone();

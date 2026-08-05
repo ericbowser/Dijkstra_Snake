@@ -5,21 +5,11 @@ const DIRS = [
   { x: 0, z: -1 }
 ];
 
-/**
- * Pure pathfinding algorithms operating on grid coordinates. Knows
- * nothing about Snake, Food, or Three.js — obstacles are passed in as
- * plain data so this stays independently reusable and testable (SRP).
- */
 export class Pathfinder {
   constructor({ gridSize }) {
     this.gridSize = gridSize;
   }
 
-  /**
-   * A* search from start to goal, avoiding cells in `obstacles`.
-   * Returns an array of {x,z} steps (excluding start, including goal),
-   * or null if no path exists.
-   */
   findPath(start, goal, obstacles) {
     const blocked = new Set(obstacles.map((p) => `${p.x},${p.z}`));
     const heuristic = (p) => Math.abs(p.x - goal.x) + Math.abs(p.z - goal.z);
@@ -51,10 +41,6 @@ export class Pathfinder {
     return null;
   }
 
-  /**
-   * Counts cells reachable from `start` avoiding `obstacles` — used to
-   * verify a move doesn't trap the snake in a dead-end pocket.
-   */
   floodFill(start, obstacles) {
     const blocked = new Set(obstacles.map((p) => `${p.x},${p.z}`));
     const seen = new Set([`${start.x},${start.z}`]);

@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "target": "ESNext",
+    "lib": ["ESNext", "DOM"],
+    "types": ["cypress"],
+    "checkJs": true,
+    "allowJs": true,
+    "strict": false
+  },
+  "include": ["./**/*", "../cypress.config.js"]
+}

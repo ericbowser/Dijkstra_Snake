@@ -41,7 +41,7 @@ export class GameController {
   }
 
   toggleMode() {
-    if (!this.ai) return;
+    if (!this.ai || this.gameOver) return;
     this.mode = this.mode === 'manual' ? 'ai' : 'manual';
     this._lastAIStatus = null;
     this.onStatusChange(this._statusLabel());

@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ESNext",
+    "lib": ["ESNext", "DOM"],
+    "checkJs": true,
+    "allowJs": true,
+    "strict": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "index.html",
+    "index.js",
+    "cypress/**/*",
+    "cypress.config.js"
+  ],
+  "exclude": ["node_modules", "dist", "cypress/videos", "cypress/screenshots"]
+}
