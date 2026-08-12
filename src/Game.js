@@ -6,10 +6,10 @@ import { GameLoop } from './core/GameLoop.js';
 import { UIController } from './core/UIController.js';
 import { Board } from './game/Board.js';
 import { CameraRig } from './game/CameraRig.js';
-import { Snake } from './game/Snake.js';
-import { Food } from './game/Food.js';
-import { GameController } from './game/GameController.js';
 import { SnakeAI } from './game/SnakeAI.js';
+import { SurvivalAI } from './game/SurvivalAI.js';
+import { RoundManager } from './game/RoundManager.js';
+import { PASTEL } from './palette.js';
 
 const GRID_SIZE = 25;
 const CELL_SIZE = 1;
@@ -17,13 +17,23 @@ const TICK_RATE_HZ = 6;
 
 /**
  * Composition root: builds each single-responsibility piece and wires
- * them together. Also owns the round lifecycle (idle -> running ->
- * game over -> restart) since that's orchestration, not a rule any
- * single piece should own itself.
+ * them together. Round lifecycle (idle -> running -> game over ->
+ * restart) is delegated to RoundManager — Game.js's only job is
+ * wiring dependencies and driving the render loop.
+ *
+ * `state`, `snake`, `food`, and `controller` are exposed as read-only
+ * getters delegating to `round` so external consumers (DevTools, the
+ * Cypress test's window.__game) keep working unchanged even though
+ * round bookkeeping now lives in a separate class.
  */
 export class Game {
   constructor(container) {
-    this.sceneManager = new SceneManager({ backgroundColor: 0x0a0a0a });
+    this.sceneManager = new SceneManager({
+      backgroundColor: PASTEL.background,
+      fogColor: PASTEL.fog,
+      fogNear: 22,
+      fogFar: 48
+    });
     this.rendererManager = new RendererManager({ container });
 
     this.board = new Board({ gridSize: GRID_SIZE, cellSize: CELL_SIZE });
@@ -43,11 +53,23 @@ export class Game {
       statusEl: document.getElementById('ai-status')
     });
 
-    this.ai = new SnakeAI({ gridSize: GRID_SIZE });
+    this.ais = {
+      hunt: new SnakeAI({ gridSize: GRID_SIZE }),
+      survive: new SurvivalAI({ gridSize: GRID_SIZE })
+    };
 
     this.gameLoop = new GameLoop({
       tickRateHz: TICK_RATE_HZ,
-      onTick: () => this.controller.tick()
+      onTick: () => this.round.controller.tick()
+    });
+
+    this.round = new RoundManager({
+      sceneManager: this.sceneManager,
+      gameLoop: this.gameLoop,
+      ui: this.ui,
+      ais: this.ais,
+      gridSize: GRID_SIZE,
+      cellSize: CELL_SIZE
     });
 
     this.input = new InputManager();
@@ -55,19 +77,33 @@ export class Game {
     this.input.on('tiltDown', () => this.cameraRig.tilt(1));
     this.input.on('rotateLeft', () => this.cameraRig.rotate(-1));
     this.input.on('rotateRight', () => this.cameraRig.rotate(1));
-    this.input.on('moveUp', () => this.controller?.setDirection({ x: 0, z: -1 }));
-    this.input.on('moveDown', () => this.controller?.setDirection({ x: 0, z: 1 }));
-    this.input.on('moveLeft', () => this.controller?.setDirection({ x: -1, z: 0 }));
-    this.input.on('moveRight', () => this.controller?.setDirection({ x: 1, z: 0 }));
-    this.input.on('startOrRestart', () => this._handleStartOrRestart());
-    this.input.on('toggleMode', () => this.controller?.toggleMode());
+    this.input.on('moveUp', () => this.round.controller?.setDirection({ x: 0, z: -1 }));
+    this.input.on('moveDown', () => this.round.controller?.setDirection({ x: 0, z: 1 }));
+    this.input.on('moveLeft', () => this.round.controller?.setDirection({ x: -1, z: 0 }));
+    this.input.on('moveRight', () => this.round.controller?.setDirection({ x: 1, z: 0 }));
+    this.input.on('startOrRestart', () => this.round.handleStartOrRestart());
+    this.input.on('toggleMode', () => this.round.controller?.toggleMode());
 
     this.rendererManager.onResize((aspect) => this.cameraRig.setAspect(aspect));
 
-    this.state = 'idle';
-    this.ui.setStatus('Press space to start');
     this._clockStart = performance.now();
     this._animate = this._animate.bind(this);
+  }
+
+  get state() {
+    return this.round.state;
+  }
+
+  get snake() {
+    return this.round.snake;
+  }
+
+  get food() {
+    return this.round.food;
+  }
+
+  get controller() {
+    return this.round.controller;
   }
 
   start() {
@@ -76,59 +112,12 @@ export class Game {
     this._animate();
   }
 
-  _handleStartOrRestart() {
-    if (this.state === 'idle' || this.state === 'gameover') {
-      this._beginRound();
-    }
-  }
-
-  _beginRound() {
-    if (this.snake) this.sceneManager.remove(this.snake.mesh);
-    if (this.food) this.sceneManager.remove(this.food.mesh);
-
-    const mid = Math.floor(GRID_SIZE / 2);
-    this.snake = new Snake({
-      cellSize: CELL_SIZE,
-      positions: [
-        { x: mid, z: mid },
-        { x: mid - 1, z: mid },
-        { x: mid - 2, z: mid }
-      ]
-    });
-
-    this.food = new Food({
-      cellSize: CELL_SIZE,
-      gridSize: GRID_SIZE,
-      occupied: this.snake.positions
-    });
-
-    this.sceneManager.add(this.snake.mesh, this.food.mesh);
-
-    this.controller = new GameController({
-      snake: this.snake,
-      food: this.food,
-      gridSize: GRID_SIZE,
-      ai: this.ai,
-      onScoreChange: (score) => this.ui.setScore(score),
-      onStatusChange: (label) => this.ui.setStatus(label),
-      onGameOver: () => {
-        this.state = 'gameover';
-        this.gameLoop.stop();
-        this.ui.setStatus('Game over — space to restart');
-      }
-    });
-
-    this.ui.setScore(0);
-    this.state = 'running';
-    this.gameLoop.start();
-  }
-
   _animate() {
     requestAnimationFrame(this._animate);
     const elapsed = (performance.now() - this._clockStart) / 1000;
 
     this.cameraRig.update();
-    this.food?.update(elapsed);
+    this.round.food?.update(elapsed);
     this.rendererManager.render(this.sceneManager.scene, this.cameraRig.camera);
   }
 }

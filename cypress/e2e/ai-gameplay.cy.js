@@ -149,7 +149,7 @@ describe('Dijkstra Snake — A* AI gameplay', () => {
     cy.get('#ai-status').should('contain.text', 'Manual');
 
     pressKey('KeyM');
-    cy.get('#ai-status', { timeout: 5000 }).should('contain.text', 'AI:');
+    cy.get('#ai-status', { timeout: 5000 }).should('contain.text', 'A*:');
 
     // Kick toward near-parallel (slightly angled); tracker holds phi
     // and orbits so the view runs along the snake → food line.

@@ -7,21 +7,21 @@
   <link rel="stylesheet" href="/src/styles/tailwind.css" />
   <link rel="stylesheet" href="/src/styles/ui.css" />
 </head>
-<body class="m-0 overflow-hidden bg-black">
+<body class="m-0 overflow-hidden" style="background:#ffb3c1">
   <div id="scene-root" class="fixed inset-0"></div>
 
   <div id="ui-root" class="fixed inset-0 pointer-events-none flex flex-col justify-between p-6">
     <div class="flex justify-between items-start pointer-events-auto">
-      <div class="bg-black/40 text-white rounded-lg px-4 py-2 text-sm space-y-1">
+      <div class="bg-white/45 text-stone-700 rounded-lg px-4 py-2 text-sm space-y-1 backdrop-blur-sm">
         <div>Score: <span id="score">0</span></div>
         <div>Status: <span id="ai-status">Press space to start</span></div>
       </div>
-      <div class="bg-black/40 text-white rounded-lg px-4 py-2 text-xs text-right">
+      <div class="bg-white/45 text-stone-700 rounded-lg px-4 py-2 text-xs text-right backdrop-blur-sm">
         <div>W A S D — move</div>
         <div>↑ / ↓ — tilt camera</div>
         <div>← / → — rotate camera</div>
         <div>space — start / restart</div>
-        <div>M — toggle AI / manual</div>
+        <div>M — cycle manual / A* / live</div>
       </div>
     </div>
   </div>

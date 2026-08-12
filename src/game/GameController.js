@@ -1,17 +1,19 @@
+const MODE_ORDER = ['manual', 'hunt', 'survive'];
+
 /**
  * Owns the actual rules of the game: direction, collision detection,
- * eating, scoring, and game-over state. Also owns the manual/AI mode
- * switch — the AI itself is injected (SnakeAI), so GameController
- * doesn't know how a direction gets decided, only which source to ask
- * (DIP). Reports outcomes through callbacks; knows nothing about
- * rendering or the DOM.
+ * eating, scoring, and game-over state. Also owns the mode cycle
+ * (manual → A* hunt → live/survive). Concrete AIs are injected by
+ * id (`ais.hunt`, `ais.survive`) so GameController never constructs
+ * or names an algorithm (DIP). Reports structured { mode, aiStatus }
+ * and leaves label formatting to UIController.
  */
 export class GameController {
   constructor({
     snake,
     food,
     gridSize,
-    ai = null,
+    ais = {},
     onScoreChange = () => {},
     onGameOver = () => {},
     onStatusChange = () => {}
@@ -19,7 +21,7 @@ export class GameController {
     this.snake = snake;
     this.food = food;
     this.gridSize = gridSize;
-    this.ai = ai;
+    this.ais = ais;
     this.onScoreChange = onScoreChange;
     this.onGameOver = onGameOver;
     this.onStatusChange = onStatusChange;
@@ -31,7 +33,7 @@ export class GameController {
     this.score = 0;
     this.gameOver = false;
 
-    this.onStatusChange(this._statusLabel());
+    this._emitStatus();
   }
 
   setDirection(dir) {
@@ -41,17 +43,27 @@ export class GameController {
   }
 
   toggleMode() {
-    if (!this.ai || this.gameOver) return;
-    this.mode = this.mode === 'manual' ? 'ai' : 'manual';
+    if (this.gameOver) return;
+    const hasAnyAI = MODE_ORDER.some((id) => id !== 'manual' && this.ais[id]);
+    if (!hasAnyAI) return;
+
+    let i = MODE_ORDER.indexOf(this.mode);
+    if (i < 0) i = 0;
+    do {
+      i = (i + 1) % MODE_ORDER.length;
+    } while (MODE_ORDER[i] !== 'manual' && !this.ais[MODE_ORDER[i]]);
+
+    this.mode = MODE_ORDER[i];
     this._lastAIStatus = null;
-    this.onStatusChange(this._statusLabel());
+    this._emitStatus();
   }
 
   tick() {
     if (this.gameOver) return;
 
-    if (this.mode === 'ai' && this.ai) {
-      const result = this.ai.decide({ snake: this.snake, food: this.food });
+    const ai = this.ais[this.mode];
+    if (ai) {
+      const result = ai.decide({ snake: this.snake, food: this.food });
       this._lastAIStatus = result.status;
       // A null direction means truly trapped — keep the last direction
       // rather than freezing; it'll end the game on collision naturally.
@@ -78,13 +90,11 @@ export class GameController {
       this.food.respawn(this.snake.positions);
     }
 
-    this.onStatusChange(this._statusLabel());
+    this._emitStatus();
   }
 
-  _statusLabel() {
-    if (this.mode === 'manual') return 'Manual';
-    const labels = { hunting: 'Hunting', surviving: 'Surviving', trapped: 'Trapped' };
-    return `AI: ${labels[this._lastAIStatus] || 'Hunting'}`;
+  _emitStatus() {
+    this.onStatusChange({ mode: this.mode, aiStatus: this._lastAIStatus });
   }
 
   _hitsWall(pos) {

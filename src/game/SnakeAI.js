@@ -1,12 +1,7 @@
 import { Pathfinder } from './Pathfinder.js';
+import { CARDINAL_DIRECTIONS as DIRS } from './directions.js';
 
 const SAFETY_MARGIN = 0.5; // require at least 50% of body length reachable after the move
-const DIRS = [
-  { x: 1, z: 0 },
-  { x: -1, z: 0 },
-  { x: 0, z: 1 },
-  { x: 0, z: -1 }
-];
 
 /**
  * Decides the snake's next direction each tick. Delegates all

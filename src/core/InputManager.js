@@ -4,8 +4,7 @@
  * new bindings can be added here without touching consumer code (OCP).
  *
  * Movement uses WASD since arrow up/down are reserved for camera tilt.
- * Space starts/restarts the game; M is reserved for the future
- * AI/manual toggle so it never collides with start/restart.
+ * Space starts/restarts the game; M cycles manual → A* hunt → live.
  */
 export class InputManager {
   constructor() {

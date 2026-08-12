@@ -1,6 +1,7 @@
 import * as THREE from 'three';
+import { PASTEL } from '../palette.js';
 
-const FOOD_COLOR = 0xd85a30;
+const FOOD_COLOR = PASTEL.food;
 
 /**
  * The food pickup: a small glowing sphere that gently pulses. Owns its

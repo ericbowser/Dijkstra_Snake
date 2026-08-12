@@ -1,6 +1,11 @@
 import * as THREE from 'three';
 import { SnakeSegmentFactory } from './SnakeSegmentFactory.js';
 
+/** Yaw around Y so a +X-facing mesh points from `from` toward `to`. */
+function yawToward(from, to) {
+  return Math.atan2(-(to.z - from.z), to.x - from.x);
+}
+
 /**
  * Owns the snake's grid positions and their corresponding meshes.
  * Delegates mesh creation to SnakeSegmentFactory (DIP) — Snake itself
@@ -48,9 +53,18 @@ export class Snake {
 
       segment.position.set(
         pos.x * this.cellSize,
-        this.cellSize * 0.3,
+        this.cellSize * 0.38,
         pos.z * this.cellSize
       );
+
+      // Factory meshes face +X; yaw head/tail to match travel so the
+      // hood and pointer actually point the way the snake is going.
+      if (i === 0 && this.positions[1]) {
+        segment.rotation.y = yawToward(this.positions[1], pos);
+      } else if (i === this.positions.length - 1 && this.positions[i - 1]) {
+        segment.rotation.y = yawToward(this.positions[i - 1], pos);
+      }
+
       this.mesh.add(segment);
     });
   }

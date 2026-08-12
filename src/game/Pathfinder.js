@@ -1,9 +1,4 @@
-const DIRS = [
-  { x: 1, z: 0 },
-  { x: -1, z: 0 },
-  { x: 0, z: 1 },
-  { x: 0, z: -1 }
-];
+import { CARDINAL_DIRECTIONS as DIRS } from './directions.js';
 
 export class Pathfinder {
   constructor({ gridSize }) {
