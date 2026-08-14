@@ -22,11 +22,10 @@ function skin(color, { emissive = false } = {}) {
 }
 
 /**
- * Cobra-head + pointer-tail experiment on circular body segments.
- * Built facing +X; Snake.js yaws the group to match travel.
+ * Whimsical cartoon head (chubby skull, big eyes, snout, forked tongue)
+ * + pointer tail, circular body. Built facing +X; Snake.js yaws to travel.
  *
- * Backups: SnakeSegmentFactory.sphere.js (all spheres),
- * SnakeSegmentFactory.box.js (original boxes).
+ * Backups: SnakeSegmentFactory.cobra.js, .sphere.js, .box.js
  */
 export class SnakeSegmentFactory {
   constructor({ segmentSize = 0.8 } = {}) {
@@ -38,37 +37,100 @@ export class SnakeSegmentFactory {
     const s = this.segmentSize;
     const mat = skin(HEAD_COLOR, { emissive: true });
 
-    const skull = new THREE.Mesh(new THREE.SphereGeometry(s * 0.34, 18, 14), mat);
-    skull.scale.set(1.28, 0.76, 0.82);
-    skull.position.set(s * 0.1, 0.02, 0);
+    // Oversize chubby skull — clearly larger than body spheres
+    const skull = new THREE.Mesh(new THREE.SphereGeometry(s * 0.58, 22, 18), mat);
+    skull.scale.set(1.05, 0.92, 1.12);
+    skull.position.set(s * 0.08, s * 0.1, 0);
     skull.castShadow = true;
     group.add(skull);
 
-    const hood = new THREE.Mesh(new THREE.SphereGeometry(s * 0.4, 18, 14), mat);
-    hood.scale.set(0.4, 1.08, 1.7);
-    hood.position.set(-s * 0.1, s * 0.14, 0);
-    hood.castShadow = true;
-    group.add(hood);
+    // Rosy cheek blushes — sit proud of the skull so they silhouette
+    const cheekMat = new THREE.MeshStandardMaterial({
+      color: 0xff8fab,
+      emissive: 0xff8fab,
+      emissiveIntensity: 0.25,
+      roughness: 0.55
+    });
+    for (const side of [1, -1]) {
+      const cheek = new THREE.Mesh(new THREE.SphereGeometry(s * 0.16, 12, 10), cheekMat);
+      cheek.position.set(s * 0.1, -s * 0.02, side * s * 0.52);
+      cheek.scale.set(0.65, 0.5, 0.75);
+      group.add(cheek);
+    }
 
-    const collar = new THREE.Mesh(new THREE.SphereGeometry(s * 0.3, 14, 12), mat);
-    collar.scale.set(0.72, 0.68, 1.12);
-    collar.position.set(-s * 0.16, -s * 0.02, 0);
-    collar.castShadow = true;
-    group.add(collar);
+    // Rounded snout / muzzle
+    const snout = new THREE.Mesh(new THREE.SphereGeometry(s * 0.28, 16, 14), mat);
+    snout.scale.set(1.2, 0.7, 0.95);
+    snout.position.set(s * 0.55, 0, 0);
+    snout.castShadow = true;
+    group.add(snout);
 
-    const eyeGeo = new THREE.SphereGeometry(0.07, 12, 12);
-    const eyeMat = new THREE.MeshStandardMaterial({ color: EYE_COLOR });
-    const eyeX = s * 0.28;
-    const eyeZ = s * 0.22;
-    const eyeY = s * 0.12;
+    // Nostrils
+    const nostrilMat = new THREE.MeshStandardMaterial({ color: 0x1a2430, roughness: 0.75 });
+    for (const side of [1, -1]) {
+      const nostril = new THREE.Mesh(new THREE.SphereGeometry(s * 0.045, 8, 6), nostrilMat);
+      nostril.position.set(s * 0.78, s * 0.04, side * s * 0.09);
+      group.add(nostril);
+    }
 
-    const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
-    leftEye.position.set(eyeX, eyeY, eyeZ);
-    group.add(leftEye);
+    // Oversized googly eyes — sit high so they read from bird’s-eye
+    const scleraMat = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      emissive: 0xffffff,
+      emissiveIntensity: 0.22,
+      roughness: 0.3
+    });
+    const pupilMat = new THREE.MeshStandardMaterial({
+      color: EYE_COLOR,
+      emissive: 0x0a1020,
+      emissiveIntensity: 0.15,
+      roughness: 0.35
+    });
+    const sparkMat = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      emissive: 0xffffff,
+      emissiveIntensity: 0.55,
+      roughness: 0.15
+    });
 
-    const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
-    rightEye.position.set(eyeX, eyeY, -eyeZ);
-    group.add(rightEye);
+    for (const side of [1, -1]) {
+      const sclera = new THREE.Mesh(new THREE.SphereGeometry(s * 0.22, 16, 14), scleraMat);
+      sclera.position.set(s * 0.22, s * 0.38, side * s * 0.34);
+      group.add(sclera);
+
+      const pupil = new THREE.Mesh(new THREE.SphereGeometry(s * 0.11, 12, 10), pupilMat);
+      pupil.position.set(s * 0.34, s * 0.4, side * s * 0.34);
+      group.add(pupil);
+
+      const spark = new THREE.Mesh(new THREE.SphereGeometry(s * 0.04, 8, 6), sparkMat);
+      spark.position.set(s * 0.4, s * 0.48, side * s * 0.28);
+      group.add(spark);
+    }
+
+    // Bold forked tongue — pops against red/black board
+    const tongueMat = new THREE.MeshStandardMaterial({
+      color: 0xff3d6e,
+      emissive: 0xff3d6e,
+      emissiveIntensity: 0.45,
+      roughness: 0.4
+    });
+    const tongue = new THREE.Mesh(
+      new THREE.CylinderGeometry(s * 0.04, s * 0.05, s * 0.42, 8),
+      tongueMat
+    );
+    tongue.rotation.z = -Math.PI / 2;
+    tongue.position.set(s * 0.88, -s * 0.1, 0);
+    group.add(tongue);
+
+    for (const side of [1, -1]) {
+      const tip = new THREE.Mesh(
+        new THREE.CylinderGeometry(s * 0.018, s * 0.035, s * 0.22, 6),
+        tongueMat
+      );
+      tip.rotation.z = -Math.PI / 2 + side * 0.55;
+      tip.position.set(s * 1.12, -s * 0.1, side * s * 0.09);
+      group.add(tip);
+    }
 
     return group;
   }

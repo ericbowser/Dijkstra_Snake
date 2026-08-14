@@ -51,8 +51,11 @@ npm run cypress:open
 - **W A S D** — move the snake (manual mode only)
 - **↑ / ↓** — tilt camera from bird's-eye toward an angled perspective view
 - **← / →** — rotate camera around the board
+- **Q / E** — bank the camera around world Z
 - **space** — start the round; restarts after game over
 - **M** — cycle modes: manual → A* hunt → live (Hamiltonian)
+- **− / =** — slower / faster (4–36 ticks/sec; default 6). Useful for
+  watching A* hunt play out without waiting at the base pace.
 
 ## Project structure
 

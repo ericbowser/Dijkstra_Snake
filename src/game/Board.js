@@ -2,10 +2,10 @@ import * as THREE from 'three';
 import { PASTEL } from '../palette.js';
 
 /**
- * The game board: a pastel checkerboard plane (cell-sized squares so
- * the floor reads in perspective) plus a slightly larger rim that
- * silhouettes the edge. Exposes its own center so callers (camera,
- * lighting) don't need to know the board's internal math.
+ * Checkerboard table with a glass underside. From above it reads as a
+ * solid floor; when the camera ducks under (Z-tilt), the surface
+ * turns transmissive so the snake and food show through like a pane.
+ * Surface sits at ~50% opacity from every angle.
  */
 export class Board {
   constructor({ gridSize, cellSize }) {
@@ -18,32 +18,72 @@ export class Board {
       this.boardSize / 2 - this.cellSize / 2
     );
 
+    this._glassBlend = 0;
+    this._wantGlass = false;
     this.mesh = this._buildMesh();
+  }
+
+  setCameraHeight(y) {
+    this._wantGlass = y < this.center.y - 0.45;
+  }
+
+  update() {
+    const target = this._wantGlass ? 1 : 0;
+    this._glassBlend = THREE.MathUtils.lerp(this._glassBlend, target, 0.1);
+    const t = this._glassBlend;
+
+    this._surfaceMat.transmission = 0.08 + t * 0.65;
+    this._surfaceMat.thickness = 0.2 + t * 0.55;
+    this._surfaceMat.roughness = THREE.MathUtils.lerp(0.55, 0.1, t);
+    this._surfaceMat.metalness = 0;
+    this._surfaceMat.ior = THREE.MathUtils.lerp(1.4, 1.54, t);
+    this._surfaceMat.envMapIntensity = THREE.MathUtils.lerp(0.2, 1.1, t);
+    this._surfaceMat.opacity = THREE.MathUtils.lerp(0.88, 0.55, t);
+    this._surfaceMat.transparent = true;
+    this._surfaceMat.needsUpdate = true;
   }
 
   _buildMesh() {
     const group = new THREE.Group();
+    const checker = this._checkerTexture(this.gridSize);
 
-    const rimGeo = new THREE.PlaneGeometry(this.boardSize + 1.2, this.boardSize + 1.2);
     const rimMat = new THREE.MeshStandardMaterial({
       color: PASTEL.boardRim,
-      roughness: 1,
-      metalness: 0.0
+      roughness: 0.72,
+      metalness: 0.08,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.5
     });
-    const rim = new THREE.Mesh(rimGeo, rimMat);
+    const rim = new THREE.Mesh(
+      new THREE.PlaneGeometry(this.boardSize + 1.2, this.boardSize + 1.2),
+      rimMat
+    );
     rim.rotation.x = -Math.PI / 2;
     rim.position.copy(this.center);
-    rim.position.y = -0.03;
+    rim.position.y = -0.04;
     rim.receiveShadow = true;
     group.add(rim);
 
-    const planeGeo = new THREE.PlaneGeometry(this.boardSize, this.boardSize);
-    const planeMat = new THREE.MeshStandardMaterial({
-      map: this._checkerTexture(this.gridSize),
-      roughness: 1,
-      metalness: 0.0
+    this._surfaceMat = new THREE.MeshPhysicalMaterial({
+      map: checker,
+      color: 0xffffff,
+      roughness: 0.55,
+      metalness: 0.0,
+      transmission: 0.08,
+      thickness: 0.2,
+      ior: 1.4,
+      attenuationColor: new THREE.Color(PASTEL.boardA),
+      attenuationDistance: 2.5,
+      transparent: true,
+      opacity: 0.88,
+      side: THREE.DoubleSide,
+      envMapIntensity: 0.2
     });
-    const plane = new THREE.Mesh(planeGeo, planeMat);
+    const plane = new THREE.Mesh(
+      new THREE.PlaneGeometry(this.boardSize, this.boardSize),
+      this._surfaceMat
+    );
     plane.rotation.x = -Math.PI / 2;
     plane.position.copy(this.center);
     plane.receiveShadow = true;

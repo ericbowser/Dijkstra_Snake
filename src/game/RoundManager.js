@@ -9,15 +9,17 @@ import { GameController } from './GameController.js';
  * than mixing round bookkeeping into its own composition-root duties.
  */
 export class RoundManager {
-  constructor({ sceneManager, gameLoop, ui, ais = {}, gridSize, cellSize }) {
+  constructor({ sceneManager, gameLoop, ui, ais = {}, gridSize, cellSize, onStateChange }) {
     this.sceneManager = sceneManager;
     this.gameLoop = gameLoop;
     this.ui = ui;
     this.ais = ais;
     this.gridSize = gridSize;
     this.cellSize = cellSize;
+    this.onStateChange = onStateChange ?? (() => {});
 
     this.state = 'idle';
+    this.paused = false;
     this.snake = null;
     this.food = null;
     this.controller = null;
@@ -29,6 +31,24 @@ export class RoundManager {
     if (this.state === 'idle' || this.state === 'gameover') {
       this._beginRound();
     }
+  }
+
+  togglePause() {
+    if (this.state !== 'running') return false;
+
+    if (this.paused) {
+      this.paused = false;
+      this.gameLoop.start();
+      this.controller?.refreshStatus();
+      this.onStateChange();
+      return true;
+    }
+
+    this.paused = true;
+    this.gameLoop.stop();
+    this.ui.setStatus('Paused — P or ▶ to resume');
+    this.onStateChange();
+    return true;
   }
 
   _beginRound() {
@@ -61,16 +81,22 @@ export class RoundManager {
       gridSize: this.gridSize,
       ais: this.ais,
       onScoreChange: (score) => this.ui.setScore(score),
+      onLengthChange: (length) => this.ui.setLength(length),
       onStatusChange: (status) => this.ui.setModeStatus(status),
-      onGameOver: () => {
+      onGameOver: (result) => {
+        this.paused = false;
         this.state = 'gameover';
         this.gameLoop.stop();
-        this.ui.setStatus('Game over — space to restart');
+        this.ui.setGameOver(result);
+        this.onStateChange();
       }
     });
 
     this.ui.setScore(0);
+    this.ui.setLength(this.snake.positions.length);
+    this.paused = false;
     this.state = 'running';
     this.gameLoop.start();
+    this.onStateChange();
   }
 }

@@ -15,6 +15,7 @@ export class GameController {
     gridSize,
     ais = {},
     onScoreChange = () => {},
+    onLengthChange = () => {},
     onGameOver = () => {},
     onStatusChange = () => {}
   }) {
@@ -23,6 +24,7 @@ export class GameController {
     this.gridSize = gridSize;
     this.ais = ais;
     this.onScoreChange = onScoreChange;
+    this.onLengthChange = onLengthChange;
     this.onGameOver = onGameOver;
     this.onStatusChange = onStatusChange;
 
@@ -58,6 +60,10 @@ export class GameController {
     this._emitStatus();
   }
 
+  refreshStatus() {
+    this._emitStatus();
+  }
+
   tick() {
     if (this.gameOver) return;
 
@@ -76,8 +82,14 @@ export class GameController {
     const next = { x: head.x + this.direction.x, z: head.z + this.direction.z };
 
     if (this._hitsWall(next) || this._hitsSelf(next)) {
+      const length = this.snake.positions.length;
+      this.snake.crashInto(next);
       this.gameOver = true;
-      this.onGameOver();
+      this.onGameOver({
+        reason: this._hitsWall(next) ? 'wall' : 'self',
+        score: this.score,
+        length
+      });
       return;
     }
 
@@ -90,6 +102,7 @@ export class GameController {
       this.food.respawn(this.snake.positions);
     }
 
+    this.onLengthChange(this.snake.positions.length);
     this._emitStatus();
   }
 

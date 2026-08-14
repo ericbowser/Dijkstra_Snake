@@ -1,13 +1,9 @@
 import * as THREE from 'three';
 import { PASTEL } from '../palette.js';
 
-const FOOD_COLOR = PASTEL.food;
-
 /**
- * The food pickup: a small glowing sphere that gently pulses. Owns its
- * own grid position and mesh, and knows how to relocate itself to a
- * free cell — it takes the occupied cells as input rather than
- * reaching into Snake directly (DIP).
+ * Bright yellow pellet — MeshBasicMaterial + fog disabled so color stays
+ * solid from every angle (crystal/transmission used to wash out at edges).
  */
 export class Food {
   constructor({ cellSize, gridSize, occupied = [] }) {
@@ -20,16 +16,35 @@ export class Food {
   }
 
   _buildMesh() {
-    const geo = new THREE.SphereGeometry(0.28, 16, 16);
-    const mat = new THREE.MeshStandardMaterial({
-      color: FOOD_COLOR,
-      emissive: FOOD_COLOR,
-      emissiveIntensity: 0.5,
-      roughness: 0.3
-    });
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.castShadow = true;
-    return mesh;
+    const group = new THREE.Group();
+    group.renderOrder = 2;
+
+    const sphere = new THREE.Mesh(
+      new THREE.SphereGeometry(0.38, 24, 20),
+      // BasicMaterial ignores lights/fog wash — stays bright yellow from every angle
+      new THREE.MeshBasicMaterial({
+        color: PASTEL.food,
+        fog: false,
+        depthWrite: true
+      })
+    );
+    sphere.castShadow = true;
+    sphere.renderOrder = 2;
+    group.add(sphere);
+
+    return group;
+  }
+
+  /** Place on a specific cell when free; otherwise random free cell. */
+  placeAt(pos, occupied = []) {
+    const occSet = new Set(occupied.map((p) => `${p.x},${p.z}`));
+    const inBounds =
+      pos.x >= 0 && pos.x < this.gridSize && pos.z >= 0 && pos.z < this.gridSize;
+    if (inBounds && !occSet.has(`${pos.x},${pos.z}`)) {
+      this._setPosition(pos);
+      return;
+    }
+    this.respawn(occupied);
   }
 
   respawn(occupied = []) {
@@ -42,16 +57,20 @@ export class Food {
       };
     } while (occSet.has(`${pos.x},${pos.z}`));
 
+    this._setPosition(pos);
+  }
+
+  _setPosition(pos) {
     this.position = pos;
     this.mesh.position.set(
       pos.x * this.cellSize,
-      this.cellSize * 0.3,
+      this.cellSize * 0.42,
       pos.z * this.cellSize
     );
   }
 
   update(elapsedSeconds) {
-    const pulse = 1 + Math.sin(elapsedSeconds * 4) * 0.12;
+    const pulse = 1 + Math.sin(elapsedSeconds * 2.1) * 0.06;
     this.mesh.scale.setScalar(pulse);
   }
 }

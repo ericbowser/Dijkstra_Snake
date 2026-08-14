@@ -1,17 +1,36 @@
 /**
- * Tropical Punch scene colors. Board, lights, snake, and food all
- * read from here so the palette can't drift file-to-file.
+ * Shared scene colors + quartz physical-material recipe. Board, lights,
+ * snake, and food read from here so the look can't drift file-to-file.
  */
+import * as THREE from 'three';
+
+/** MeshPhysicalMaterial defaults for milky quartz / crystal. */
+export const QUARTZ = {
+  color: 0xffffff,
+  transmission: 0.9,
+  opacity: 1.0,
+  transparent: true,
+  roughness: 0.15,
+  ior: 1.54,
+  thickness: 1.2,
+  envMapIntensity: 1.5,
+  depthWrite: false
+};
+
+export function createQuartzMaterial(overrides = {}) {
+  return new THREE.MeshPhysicalMaterial({ ...QUARTZ, ...overrides });
+}
+
 export const PASTEL = {
-  background: 0xffb3c1,
-  fog: 0xffb3c1,
-  boardA: 0xff5c8a,
-  boardB: 0xffc53d,
-  boardRim: 0xff7a1a,
-  sky: 0x67e8f9,
-  ground: 0xff8c42,
-  snakeHead: 0x2dd4bf,
-  snakeTail: 0xa3e635,
-  snakeEye: 0x3b1020,
-  food: 0xff2d6a
+  background: 0xeef5fc,
+  fog: 0xeef5fc,
+  boardA: 0xc62828,
+  boardB: 0x0a0a0a,
+  boardRim: 0x1a0505,
+  sky: 0xf4f9ff,
+  ground: 0xd4e2f0,
+  snakeHead: 0x3d9b8f,
+  snakeTail: 0xb8e8de,
+  snakeEye: 0x1a2430,
+  food: 0xffff00
 };

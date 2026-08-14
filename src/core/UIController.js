@@ -16,18 +16,32 @@ const AI_STATUS_LABELS = {
  * copy — GameController reports structured state, this class decides
  * what it reads like.
  */
+const CRASH_LABELS = { wall: 'hit wall', self: 'hit self' };
+
 export class UIController {
-  constructor({ scoreEl, statusEl }) {
+  constructor({ scoreEl, statusEl, speedEl, lengthEl }) {
     this.scoreEl = scoreEl;
     this.statusEl = statusEl;
+    this.speedEl = speedEl;
+    this.lengthEl = lengthEl;
   }
 
   setScore(score) {
     if (this.scoreEl) this.scoreEl.textContent = String(score);
   }
 
+  setLength(length) {
+    if (this.lengthEl) this.lengthEl.textContent = String(length);
+  }
+
   setStatus(status) {
     if (this.statusEl) this.statusEl.textContent = status;
+  }
+
+  setSpeed(multiplier) {
+    if (!this.speedEl) return;
+    const rounded = Number.isInteger(multiplier) ? String(multiplier) : multiplier.toFixed(1);
+    this.speedEl.textContent = `${rounded}×`;
   }
 
   /**
@@ -43,5 +57,16 @@ export class UIController {
     const prefix = MODE_PREFIX[mode] || 'AI';
     const fallback = mode === 'survive' ? 'Cycling' : 'Hunting';
     this.setStatus(`${prefix}: ${AI_STATUS_LABELS[aiStatus] || fallback}`);
+  }
+
+  /**
+   * Freeze-frame copy after a crash. Score/length stay on the HUD;
+   * status names the hit so the paused board can be read against it.
+   */
+  setGameOver({ reason, score, length }) {
+    this.setScore(score);
+    this.setLength(length);
+    const hit = CRASH_LABELS[reason] || 'crashed';
+    this.setStatus(`Game over — ${hit} — space to restart`);
   }
 }

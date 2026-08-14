@@ -5,6 +5,9 @@
  *
  * Movement uses WASD since arrow up/down are reserved for camera tilt.
  * Space starts/restarts the game; M cycles manual → A* hunt → live.
+ * P pauses / resumes an active round.
+ * Minus / equals change tick speed so A* games can be watched faster.
+ * Q / E bank the camera around world Z.
  */
 export class InputManager {
   constructor() {
@@ -20,7 +23,14 @@ export class InputManager {
       KeyW: 'moveUp',
       KeyS: 'moveDown',
       KeyA: 'moveLeft',
-      KeyD: 'moveRight'
+      KeyD: 'moveRight',
+      Minus: 'slower',
+      NumpadSubtract: 'slower',
+      Equal: 'faster',
+      NumpadAdd: 'faster',
+      KeyQ: 'tiltZLeft',
+      KeyE: 'tiltZRight',
+      KeyP: 'togglePause'
     };
 
     this._onKeyDown = this._onKeyDown.bind(this);

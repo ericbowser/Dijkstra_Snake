@@ -36,6 +36,15 @@ export class Snake {
     this._build();
   }
 
+  /**
+   * Park the head on the cell that killed it (body/tail/off-board)
+   * without vacating the tail, so the freeze-frame shows the overlap.
+   */
+  crashInto(pos) {
+    this.positions = [pos, ...this.positions];
+    this._build();
+  }
+
   _build() {
     this.mesh.clear();
 

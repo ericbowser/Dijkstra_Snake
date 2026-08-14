@@ -7,21 +7,32 @@
   <link rel="stylesheet" href="/src/styles/tailwind.css" />
   <link rel="stylesheet" href="/src/styles/ui.css" />
 </head>
-<body class="m-0 overflow-hidden" style="background:#ffb3c1">
+<body class="m-0 overflow-hidden" style="background:#eef5fc">
   <div id="scene-root" class="fixed inset-0"></div>
 
   <div id="ui-root" class="fixed inset-0 pointer-events-none flex flex-col justify-between p-6">
     <div class="flex justify-between items-start pointer-events-auto">
       <div class="bg-white/45 text-stone-700 rounded-lg px-4 py-2 text-sm space-y-1 backdrop-blur-sm">
         <div>Score: <span id="score">0</span></div>
+        <div>Length: <span id="length">0</span></div>
         <div>Status: <span id="ai-status">Press space to start</span></div>
+        <div>Speed: <span id="speed">1×</span></div>
+        <button
+          id="pause-btn"
+          type="button"
+          disabled
+          class="mt-2 w-full rounded-md bg-stone-700/90 px-3 py-1.5 text-xs font-medium text-white hover:bg-stone-800 disabled:cursor-not-allowed disabled:opacity-40"
+        >Pause</button>
       </div>
       <div class="bg-white/45 text-stone-700 rounded-lg px-4 py-2 text-xs text-right backdrop-blur-sm">
         <div>W A S D — move</div>
         <div>↑ / ↓ — tilt camera</div>
         <div>← / → — rotate camera</div>
+        <div>Q / E — tilt around Z (glass from below)</div>
         <div>space — start / restart</div>
         <div>M — cycle manual / A* / live</div>
+        <div>P — pause / resume</div>
+        <div>− / = — slower / faster</div>
       </div>
     </div>
   </div>
