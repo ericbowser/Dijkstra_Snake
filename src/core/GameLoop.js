@@ -35,9 +35,17 @@ export class GameLoop {
     this._lastTime = now;
     this._accumulator += delta;
 
-    while (this._accumulator >= this.interval) {
+    // Cap catch-up so a slow A* tick at high Hz cannot spiral
+    // (one expensive frame would otherwise queue unbounded ticks).
+    const maxTicks = 8;
+    let ticks = 0;
+    while (this._accumulator >= this.interval && ticks < maxTicks) {
       this.onTick();
       this._accumulator -= this.interval;
+      ticks += 1;
+    }
+    if (this._accumulator > this.interval * maxTicks) {
+      this._accumulator = 0;
     }
   }
 }
