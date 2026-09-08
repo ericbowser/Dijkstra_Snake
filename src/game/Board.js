@@ -5,7 +5,7 @@ import { PASTEL } from '../palette.js';
  * Checkerboard table with a glass underside. From above it reads as a
  * solid floor; when the camera ducks under (Z-tilt), the surface
  * turns transmissive so the snake and food show through like a pane.
- * Surface sits at ~50% opacity from every angle.
+ * Surface sits at ~80% opacity from every angle.
  */
 export class Board {
   constructor({ gridSize, cellSize }) {
@@ -38,7 +38,7 @@ export class Board {
     this._surfaceMat.metalness = 0;
     this._surfaceMat.ior = THREE.MathUtils.lerp(1.4, 1.54, t);
     this._surfaceMat.envMapIntensity = THREE.MathUtils.lerp(0.2, 1.1, t);
-    this._surfaceMat.opacity = THREE.MathUtils.lerp(0.88, 0.55, t);
+    this._surfaceMat.opacity = THREE.MathUtils.lerp(0.8, 0.55, t);
     this._surfaceMat.transparent = true;
     this._surfaceMat.needsUpdate = true;
   }
@@ -76,7 +76,7 @@ export class Board {
       attenuationColor: new THREE.Color(PASTEL.boardA),
       attenuationDistance: 2.5,
       transparent: true,
-      opacity: 0.88,
+      opacity: 0.8,
       side: THREE.DoubleSide,
       envMapIntensity: 0.2
     });

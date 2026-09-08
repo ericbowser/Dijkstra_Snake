@@ -1,13 +1,16 @@
 /**
- * Starts Vite (or reuses one already on PORT), then runs the A* hunt
- * Cypress spec in headed Chrome. Avoids start-server-and-test/wmic.
+ * Starts Vite (or reuses one already on PORT), then runs a Cypress
+ * A* hunt spec in headed Chrome. Avoids start-server-and-test/wmic.
+ *
+ * Usage: node scripts/run-astar-full.mjs [spec]
+ * Default spec: cypress/e2e/astar-improved-hunt.cy.js
  */
 import { spawn } from 'node:child_process';
 import { createConnection } from 'node:net';
 
 const PORT = 5188;
 const BASE = `http://localhost:${PORT}`;
-const SPEC = 'cypress/e2e/astar-improved-hunt.cy.js';
+const SPEC = process.argv[2] || 'cypress/e2e/astar-improved-hunt.cy.js';
 
 function portOpen(port) {
   return new Promise((resolve) => {
@@ -58,6 +61,7 @@ if (alreadyUp) {
 
 try {
   await waitForServer(BASE);
+  console.log(`Running Cypress spec: ${SPEC}`);
 
   const cypress = run('npx', [
     'cypress',
